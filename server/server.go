@@ -28,7 +28,10 @@ func acceptConns(ln net.Listener, conns chan net.Conn) {
 	// Continuously accept a network connection from the Listener
 	// and add it to the channel for handling connections.
 	for {
-		conn, _ := ln.Accept()
+		conn, err := ln.Accept()
+		if err != nil {
+			handleError(err)
+		}
 		conns <- conn
 	}
 }
@@ -41,7 +44,10 @@ func handleClient(client net.Conn, clientid int, msgs chan Message) {
 	// recording which client it came from.
 	reader := bufio.NewReader(client)
 	for {
-		msg, _ := reader.ReadString('\n')
+		msg, err := reader.ReadString('\n')
+		if err != nil {
+			handleError(err)
+		}
 		msg = strings.TrimRight(msg, "\n") //tidy it up
 		msgs <- Message{clientid, msg}
 	}
@@ -55,7 +61,10 @@ func main() {
 	flag.Parse()
 
 	//TODO Create a Listener for TCP connections on the port given above.
-	ln, _ := net.Listen("tcp", *portPtr)
+	ln, err := net.Listen("tcp", *portPtr)
+	if err != nil {
+		handleError(err)
+	}
 
 	//Create a channel for connections
 	conns := make(chan net.Conn)

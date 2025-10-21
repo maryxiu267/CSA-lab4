@@ -12,7 +12,11 @@ func read(conn net.Conn) {
 	//TODO In a continuous loop, read a message from the server and display it.
 	reader := bufio.NewReader(conn)
 	for {
-		message, _ := reader.ReadString('\n')
+		message, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Disconnected from server")
+			return
+		}
 		fmt.Print(message)
 	}
 }
@@ -22,7 +26,11 @@ func write(conn net.Conn) {
 	stdin := bufio.NewReader(os.Stdin)
 	for { //for loop so u can send multiple messages
 		fmt.Print("> ")
-		message, _ := stdin.ReadString('\n')
+		message, err := stdin.ReadString('\n')
+		if err != nil {
+			fmt.Println("Error reading input:", err)
+			continue
+		}
 		fmt.Fprintln(conn, message)
 	}
 }
@@ -33,7 +41,11 @@ func main() {
 	flag.Parse()
 
 	//TODO Try to connect to the server
-	conn, _ := net.Dial("tcp", *addrPtr)
+	conn, err := net.Dial("tcp", *addrPtr)
+	if err != nil {
+		fmt.Printf("Failed to connect to server at %s: %v\n", *addrPtr, err)
+		return
+	}
 
 	//TODO Start asynchronously reading and displaying messages
 	go read(conn)
